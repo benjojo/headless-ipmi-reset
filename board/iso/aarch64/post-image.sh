@@ -19,6 +19,7 @@ mkisofs \
    -R -J -v -d -N \
    -hide-rr-moved \
    -no-emul-boot \
+   -boot-load-size 4 -boot-info-table \
    -eltorito-platform=efi \
    -eltorito-boot EFI/BOOT/efiboot.img \
    -V "EFIBOOTISO" \
