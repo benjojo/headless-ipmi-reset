@@ -33,9 +33,9 @@ Wait for the machine to POST and keep an eye on the identify/UID light, if you h
 
 Wait for the identify/UID light to turn on (see below for examples)
 
-<video src="./assets/H12-uid.mp4"></video>
+<video src="assets/H12-uid.mp4"></video>
 
-<video src="./assets/X9-uid.mp4"></video>
+<video src="assets/X9-uid.mp4"></video>
 
 When the identify/UID light is lit up (and it will only stay lit up for 15 seconds), you can shut the server down and connect the management port. It should then DHCP. You should then be able to log in (either using ipmitool or the web interface with "admin"/"N0WReset!")
 
