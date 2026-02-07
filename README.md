@@ -2,14 +2,16 @@
 
 Have you ever been in the situation where you have acquired server hardware and you're are not sure what's the BMC (IPMI/iDRAC/iLO) credentials to log in and install an operating system are, and you don't have a computer screen handy (with the applicable cable/port, normally VGA...) or a image to boot and reset the password/LAN settings by hand?
 
-Well this is the bootable ISO for you!
+Well this is the bootable ISO for you! in short, this lets you reset the BMC (IPMI/iDRAC/iLO) without a screen
 
 headless-ipmi-reset is a small (70MB) bootable ISO that you can put on to a USB stick and boot a server with and it will:
 
 1. Change all LAN channels to use DHCP
 1. Disable VLANs on all LAN channels
-1. Setup a user with "admin"/"N0WReset!"
+1. Setup a user with "admin"/"N0WReset!" (The 0 in N0W is a zero)
 1. Flash the locator LED to indicate that is has finished
+
+All without you needing a screen, and hopefully a keyboard as well! Just stick in a USB stick (and remove all other storage drives) and go!
 
 ## Tested machines
 
@@ -33,11 +35,11 @@ Wait for the machine to POST and keep an eye on the identify/UID light, if you h
 
 Wait for the identify/UID light to turn on (see below for examples)
 
-<video src="assets/H12-uid.mp4"></video>
+https://github.com/user-attachments/assets/7dcb3052-078d-4c6d-bd6d-0ab61aa05a72
 
-<video src="assets/X9-uid.mp4"></video>
+https://github.com/user-attachments/assets/6f125c45-5132-4444-9d15-9723ac6811be
 
-When the identify/UID light is lit up (and it will only stay lit up for 15 seconds), you can shut the server down and connect the management port. It should then DHCP. You should then be able to log in (either using ipmitool or the web interface with "admin"/"N0WReset!")
+When the identify/UID light is lit up (and it will only stay lit up for 15 seconds), you can shut the server down and connect the management port. It should then DHCP. You should then be able to log in (either using ipmitool or the web interface with "admin"/"N0WReset!"  (The 0 in N0W is a zero)) 
 
 Please make sure to change the password after running this utility and regaining control of your BMC
 
