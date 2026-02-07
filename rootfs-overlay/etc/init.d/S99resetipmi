@@ -16,23 +16,26 @@ fi
 
 echo "Starting BMC configuration process..."
 
-ipmitool raw 0x06 0x02
-sleep 10
-ipmitool mc reset cold
+# ipmitool raw 0x3c 0x40
+# sleep 10
+# ipmitool mc reset cold
 # 1. Reset BMC to factory defaults
 # Note: This may require physical access or out-of-band access as connectivity will be lost
 # Alternative methods for specific vendors:
 # For Supermicro with IPMICFG: ipmicfg -fd
 # For some systems: ipmitool raw 0x06 0x02 (reset to defaults)
 
-# Wait for BMC to reset (adjust time as needed for your hardware)
-sleep 60
+# # Wait for BMC to reset (adjust time as needed for your hardware)
+# sleep 60
 
 # 2. Set LAN interface to DHCP
 echo "Configuring LAN interface for DHCP..."
 ipmitool lan set 1 ipsrc dhcp
 ipmitool lan set 2 ipsrc dhcp
 ipmitool lan set 3 ipsrc dhcp
+ipmitool lan set 1 vlan id off
+ipmitool lan set 2 vlan id off
+ipmitool lan set 3 vlan id off
 
 # Verify DHCP setting
 echo "Current LAN configuration:"
