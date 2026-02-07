@@ -1,152 +1,72 @@
-# Minimal Buildroot
+# headless-ipmi-reset
 
-Trying to build a minimal buildroot for booting using emulator and as a virtual machine.
+Have you ever been in the situation where you have acquired server hardware and you're are not sure what's the BMC (IPMI/iDRAC/iLO) credentials to log in and install an operating system are, and you don't have a computer screen handy (with the applicable cable/port, normally VGA...) or a image to boot and reset the password/LAN settings by hand?
 
-Just using the default setup from buildroot, will add custom kernel and software later.
+Well this is the bootable ISO for you!
 
-* `board/`
+headless-ipmi-reset is a small (70MB) bootable ISO that you can put on to a USB stick and boot a server with and it will:
 
-* `configs/`
+1. Change all LAN channels to use DHCP
+1. Disable VLANs on all LAN channels
+1. Setup a user with "admin"/"N0WReset!"
+1. Flash the locator LED to indicate that is has finished
 
-| Target   | amd64 (x86_64)                    | arm64 (aarch64)               |
-| -------- | --------------------------------- | ----------------------------- |
-| QEMU     | qemu/x86_64                       | qemu/aarch64-virt             |
-|          | qemu_x86_64_defconfig             | qemu_aarch64_virt_defconfig   |
-| UEFI     | pc                                | aarch64-efi                   |
-|          | pc_x86_64_efi_defconfig           | aarch64_efi_defconfig         |
+## Tested machines
 
-Just copied these files from buildroot, since it was hard to see the forest for the trees.
+* Supermicro H12
+* Supermicro H13
+* Supermicro X11
+* Supermicro X10
+* Supermicro X9
 
-Some quirks: the x86_64 targets builds ext2 (not ext4), and without support for "virtio".
+The image only works with UEFI installations, all systems that sane people would still want to use will almost certainly have this enabled.
 
-The name of the kernel and format of the initrd might also vary a bit, between the arch.
+## Recommended Usage
 
-* `kernel/`
+Go to the releases page and download the most recent "headless-ipmi-reset-x86-64.iso" and write it directly to a USB stick, on Linux/Mac you will probably want to use something like `dd`, on windows you can refer to many existing guides for flashing raspberry pi images to sd cards.
 
-| Linux    | amd64 (x86_64)                    | arm64 (aarch64)               |
-| -------- | --------------------------------- | ----------------------------- |
-| Kernel   | kernel/x86_64_defconfig           | kernel/aarch64_defconfig      |
-|          | linux/arch/x86/configs/           | linux/arch/arm64/configs/     |
+Remove all storage drives from the machine, this will prevent the server from booting (or attempting to) from any of the existing operating systems already installed.
 
-These default configs were copied from the Linux kernel, and seen with "make defconfig".
+Attach the USB drive (ideally to a USB 2 port if you have them, they just tend to work better with UEFI firmware in my experience)
 
-----
+Wait for the machine to POST and keep an eye on the identify/UID light, if you have a slow USB stick it might take up to two minutes for it to work (excluding the time that it takes for your machine to actually POST, you will probably be able to hear when the post is finished because the fans will spin down)
 
-New targets (based on UEFI above), making an `.img` disk with boot/root ext4 partitions.
+Wait for the identify/UID light to turn on (see below for examples)
 
-|          | amd64 (x86_64)                    | arm64 (aarch64)                   |
-| -------- | --------------------------------- | --------------------------------- |
-| Image    | img/x86_64                        | img/aarch64                       |
-|          | img_x86_64_defconfig              | img_aarch64_defconfig             |
-|          | img/x86_64/linux.config           | img/aarch64/linux.config          |
+<video src="./assets/H12-uid.mp4"></video>
 
-amd64
-```
-Disk disk-amd64.img: 136,5 MiB, 142656000 bytes, 278625 sectors
+<video src="./assets/X9-uid.mp4"></video>
 
-Device          Start    End Sectors  Size Type
-disk-amd64.img1    64  32831   32768   16M EFI System
-disk-amd64.img2 32832 278591  245760  120M Linux root (x86)
-```
+When the identify/UID light is lit up (and it will only stay lit up for 15 seconds), you can shut the server down and connect the management port. It should then DHCP. You should then be able to log in (either using ipmitool or the web interface with "admin"/"N0WReset!")
 
-arm64
-```
-Disk disk-arm64.img: 232 MiB, 243270144 bytes, 475137 sectors
+Please make sure to change the password after running this utility and regaining control of your BMC
 
-Device          Boot Start    End Sectors  Size Id Type
-disk-arm64.img1          1  65536   65536   32M ef EFI (FAT-12/16/32)
-disk-arm64.img2      65537 475136  409600  200M 83 Linux
-```
+## Debugging when it doesn't work
 
-New targets (based on UEFI above), making an `.iso` (ISO-9660) output instead of an `.img`.
+There are few reasons why this ISO may not work for you, we will start with the most common
 
-|          | amd64 (x86_64)                    | arm64 (aarch64)                   |
-| -------- | --------------------------------- | --------------------------------- |
-| ISO      | iso/x86_64                        | iso/aarch64                       |
-|          | iso_x86_64_defconfig              | iso_aarch64_defconfig             |
-|          | iso/x86_64/linux-extras.config    | iso/aarch64/linux-extras.config   |
+### EFI Shell starts before UEFI booting 
 
-amd64
-```
-boot-amd64.iso
-├── boot
-│   ├── initrd.img
-│   └── vmlinuz
-├── boot.catalog
-└── EFI
-    └── BOOT
-        ├── bootx64.efi
-        ├── efiboot.img
-        └── grub.cfg
-```
+It may turn out that the EFI shell starts before the system will go on boot from a USB device, if this is the case you may want to wait for a while and then try and enter the following commands (while blind) using a USB keyboard:
 
-arm64
-```
-boot-arm64.iso
-├── boot
-│   ├── initrd.img
-│   └── vmlinuz
-├── boot.catalog
-└── EFI
-    └── BOOT
-        ├── bootaa64.efi
-        ├── efiboot.img
-        └── grub.cfg
-```
+![](./assets/efi-shell.png)
 
-----
+Once bootx64.efi is started the system automatically drive itself
 
-* `buildroot/`
+### The Boot Menu is needed
 
-This is the buildroot upstream, it is not modified except for the "output" directory.
+You may need to press F11 during boot, and (while blind) find the USB stick, on most system firmwares it is the 2nd option like so:
 
-* `output/`
+![](./assets/bootmenu.png)
 
-This is where the sources and build happens, and where the output ends up afterwards.
+### UEFI is not enabled/supported
 
-```bash
-git clone --branch=2023.02.x https://github.com/buildroot/buildroot
-cd buildroot
-make BR2_EXTERNAL=.. <*_defconfig>
-make
-```
+There is no solution here for this. You will have to go and find a screen and another boot ISO to reset the BMC
 
-* `support/`
+## Building from scratch
 
-Support files for building, such as a container image with all required build tools.
+This project is based on buildroot, you should be able to get away with just being able to run "make", assuming that you have a basic set of compilers it will download and compile all necessary tooling to build a ISO.
 
-* `container/`
+Once build the ISO will be in `./buildroot/output/images/boot-xorriso.iso`
 
-Contains helper files for constructing the container image from the rootfs archive.
-
-----
-
-```text
-93M  output/images/disk-amd64.img
-63M  output/images/disk-arm64.img
-```
-
-* [qemu-img-amd64.sh](qemu-img-amd64.sh)
-* [qemu-img-arm64.sh](qemu-img-arm64.sh)
-
-Start the emulator directly with the kernel and the rootfs in the same terminal window.
-
-* [run-img-amd64.sh](run-img-amd64.sh)
-* [run-img-arm64.sh](run-img-arm64.sh)
-
-Start the emulator with the complete system image with grub in a new graphical window.
-
-```text
-12M  output/images/boot-amd64.iso
-29M  output/images/boot-arm64.iso
-```
-
-* [qemu-iso-amd64.sh](qemu-iso-amd64.sh)
-* [qemu-iso-arm64.sh](qemu-iso-arm64.sh)
-
-Start the emulator directly with the kernel and the initrd in the same terminal window.
-
-* [run-iso-amd64.sh](run-iso-amd64.sh)
-* [run-iso-arm64.sh](run-iso-arm64.sh)
-
-Start the emulator from the UEFI CD boot image instead of disk, otherwise same as above.
+This project is based off of https://github.com/afbjorklund/minimal-buildroot

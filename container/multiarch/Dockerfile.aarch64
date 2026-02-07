@@ -1,3 +1,0 @@
-FROM scratch
-ADD aarch64-rootfs.tar.gz /
-CMD ["/bin/sh"]
