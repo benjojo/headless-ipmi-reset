@@ -1,0 +1,69 @@
+#!/bin/sh 
+
+echo -x
+
+# Configuration variables
+USERNAME="admin"
+PASSWORD="N0WReset!"
+USER_ID=2  # Default user ID for admin on most systems
+
+# Check if ipmitool is available
+if ! command -v ipmitool &> /dev/null; then
+    echo "Error: ipmitool is not installed or not in PATH"
+    echo "Please install ipmitool before running this script"
+    exit 1
+fi
+
+echo "Starting BMC configuration process..."
+
+ipmitool raw 0x06 0x02
+sleep 10
+ipmitool mc reset cold
+# 1. Reset BMC to factory defaults
+# Note: This may require physical access or out-of-band access as connectivity will be lost
+# Alternative methods for specific vendors:
+# For Supermicro with IPMICFG: ipmicfg -fd
+# For some systems: ipmitool raw 0x06 0x02 (reset to defaults)
+
+# Wait for BMC to reset (adjust time as needed for your hardware)
+sleep 60
+
+# 2. Set LAN interface to DHCP
+echo "Configuring LAN interface for DHCP..."
+ipmitool lan set 1 ipsrc dhcp
+ipmitool lan set 2 ipsrc dhcp
+ipmitool lan set 3 ipsrc dhcp
+
+# Verify DHCP setting
+echo "Current LAN configuration:"
+ipmitool lan print 1
+
+# 3. Set username and password
+echo "Setting username and password..."
+# Set the username
+ipmitool user set name $USER_ID "$USERNAME"
+# Set the password
+ipmitool user set password $USER_ID "$PASSWORD"
+
+# Enable the user
+ipmitool user enable $USER_ID
+
+# Set user privileges to ADMINISTRATOR (privilege level 4)
+ipmitool channel setaccess 1 $USER_ID link=on ipmi=on callin=on privilege=4
+ipmitool channel setaccess 2 $USER_ID link=on ipmi=on callin=on privilege=4
+ipmitool channel setaccess 3 $USER_ID link=on ipmi=on callin=on privilege=4
+
+# Verify user settings
+echo "User configuration:"
+ipmitool user list 1
+
+# 4. Turn on identify light
+echo "Activating identify light..."
+ipmitool chassis identify 15  # 15 seconds blinking
+
+# Verify identify light status
+echo "BMC configuration completed successfully!"
+
+# Note: Some systems may require a BMC reset after configuration changes
+# If IPMI becomes unresponsive, a cold reset may be necessary:
+# ipmitool mc reset cold
