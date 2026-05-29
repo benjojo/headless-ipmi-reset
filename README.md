@@ -62,10 +62,6 @@ You may need to press F11 during boot, and (while blind) find the USB stick, on 
 
 ![](./assets/bootmenu.png)
 
-### UEFI is not enabled/supported
-
-There is no solution here for this. You will have to go and find a screen and another boot ISO to reset the BMC
-
 ## Building from scratch
 
 This project is based on buildroot, you should be able to get away with just being able to run "make", assuming that you have a basic set of compilers it will download and compile all necessary tooling to build a ISO.
