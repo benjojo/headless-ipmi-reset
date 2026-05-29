@@ -8,12 +8,17 @@ BR2_SYSTEM_DHCP="eth0"
 BR2_PACKAGE_HOST_DOSFSTOOLS=y
 BR2_PACKAGE_HOST_GENIMAGE=y
 BR2_PACKAGE_HOST_MTOOLS=y
+BR2_PACKAGE_HOST_XORRISO=y
 
 # Bootloader
 BR2_TARGET_GRUB2=y
 BR2_TARGET_GRUB2_X86_64_EFI=y
 BR2_TARGET_GRUB2_BUILTIN_CONFIG_EFI="$(BR2_EXTERNAL_minimal_PATH)/board/iso/x86_64/grub-stub.cfg"
 BR2_TARGET_GRUB2_BUILTIN_MODULES_EFI="boot linux ext2 fat squash4 part_msdos part_gpt normal efi_gop udf iso9660 search search_fs_file search_fs_uuid search_label"
+
+# Legacy BIOS bootloader (ISOLINUX)
+BR2_TARGET_SYSLINUX=y
+BR2_TARGET_SYSLINUX_ISOLINUX=y
 
 # Filesystem / image
 BR2_TARGET_ROOTFS_CPIO=y
