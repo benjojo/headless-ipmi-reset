@@ -15,6 +15,7 @@ All without you needing a screen, and hopefully a keyboard as well! Just stick i
 
 ## Tested machines
 
+* HPE Proliant Gen 8
 * Supermicro H12
 * Supermicro H13
 * Supermicro X11
